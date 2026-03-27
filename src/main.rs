@@ -24,11 +24,12 @@ impl Config {
         }
     }
 
-    fn save(self) {
+    fn save(self) -> Config {
         let file = File::create("config.json");
         let mut writer = BufWriter::new(file.unwrap());
         serde_json::to_writer_pretty(&mut writer, &self).expect("File Write Failed!");
         writer.flush().expect("Flush Failed!");
+        self
     }
 
     fn load() -> Config {
@@ -68,15 +69,31 @@ fn craft_workshop_path(storm_path: PathBuf) -> PathBuf {
 
 }
 
+fn get_all_comp_mods(conf: Config) -> Vec<PathBuf> {
+    let mut mods = Vec::new();
+
+    for paths in conf.storm_workshop_path.read_dir().unwrap() {
+        //Terrible way of doing this but technically works, needs improved
+        let temp_path = paths.unwrap().path().join("meshes");
+        if temp_path.exists() {
+            mods.push(temp_path);
+        }
+    }
+    mods
+}
+
 fn main() {
     let mut config = Config::load();
 
     if config.validate_storm_dir() {
         println!("Valid");
-        config.storm_workshop_path = craft_workshop_path(config.storm_path);
-        println!("{}", config.storm_workshop_path.display());
+        config.storm_workshop_path = craft_workshop_path(PathBuf::from(&config.storm_path));
+        config = config.save();
     }
     else {
         println!("Not valid");
     }
+
+    let mods = get_all_comp_mods(config);
+    println!("Mods: {:?}", mods);
 }
