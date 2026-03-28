@@ -1,4 +1,3 @@
-use std::env::current_dir;
 use std::{env, fs};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
@@ -61,7 +60,7 @@ fn craft_workshop_path(storm_path: PathBuf) -> PathBuf {
     path.push("workshop");
     path.push("content");
     path.push("573090");
-    return if path.exists() {
+    if path.exists() {
         path
     } else {
         PathBuf::new()
