@@ -69,14 +69,38 @@ fn craft_workshop_path(storm_path: PathBuf) -> PathBuf {
 
 }
 
+fn contains_mod(path: &PathBuf) -> bool {
+    let mut isdir = false;
+
+    for entry in fs::read_dir(path).unwrap() {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(_) => continue,
+        };
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(_) => continue,
+        };
+
+        if metadata.is_dir() && !entry.path().ends_with("playlist") {
+            isdir = true;
+            break;
+        };
+    };
+    isdir
+}
 fn get_all_comp_mods(conf: Config) -> Vec<PathBuf> {
     let mut mods = Vec::new();
 
     for paths in conf.storm_workshop_path.read_dir().unwrap() {
-        //Terrible way of doing this but technically works, needs improved
-        let temp_path = paths.unwrap().path().join("meshes");
-        if temp_path.exists() {
-            mods.push(temp_path);
+
+        let temp = match paths {
+            Ok(p) => p,
+            Err(_) => continue,
+        };
+
+        if contains_mod(&temp.path()) {
+            mods.push(temp.path());
         }
     }
     mods
