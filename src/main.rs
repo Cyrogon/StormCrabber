@@ -1,9 +1,11 @@
 use std::{env, fs, io};
+use std::env::current_dir;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json;
+use zip_extensions::zip_writer::zip_create_from_directory;
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -126,6 +128,10 @@ fn mods_prep(mods: Vec<PathBuf>, config: &Config) {
     }
 }
 
+fn zip_mods(config: &Config) {
+    zip_create_from_directory(&config.output_path, &current_dir().unwrap()).expect("Archiving Failed");
+}
+
 fn main() {
     let mut config = Config::load();
 
@@ -141,4 +147,5 @@ fn main() {
     let mods = get_all_comp_mods(&config);
     println!("Mods: {:?}", mods);
     mods_prep(mods, &config);
+    zip_mods(&config);
 }
