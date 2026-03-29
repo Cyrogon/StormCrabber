@@ -1,4 +1,4 @@
-use std::{env, fs};
+use std::{env, fs, io};
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -88,7 +88,7 @@ fn contains_mod(path: &PathBuf) -> bool {
     };
     isdir
 }
-fn get_all_comp_mods(conf: Config) -> Vec<PathBuf> {
+fn get_all_comp_mods(conf: &Config) -> Vec<PathBuf> {
     let mut mods = Vec::new();
 
     for paths in conf.storm_workshop_path.read_dir().unwrap() {
@@ -105,6 +105,27 @@ fn get_all_comp_mods(conf: Config) -> Vec<PathBuf> {
     mods
 }
 
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> io::Result<()> {
+    fs::create_dir_all(&dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let ty = entry.file_type()?;
+        if ty.is_dir() {
+            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
+
+
+fn mods_prep(mods: Vec<PathBuf>, config: &Config) {
+    for dirs in mods {
+        copy_dir_all(dirs.as_path(), config.output_path.as_path()).expect("File Write Failed!");
+    }
+}
+
 fn main() {
     let mut config = Config::load();
 
@@ -117,6 +138,7 @@ fn main() {
         println!("Not valid");
     }
 
-    let mods = get_all_comp_mods(config);
+    let mods = get_all_comp_mods(&config);
     println!("Mods: {:?}", mods);
+    mods_prep(mods, &config);
 }
