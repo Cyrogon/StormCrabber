@@ -1,4 +1,4 @@
-use std::{env, fs, io};
+use std::{fs, io};
 use std::env::current_dir;
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
@@ -36,7 +36,7 @@ impl Config {
     fn load() -> Config {
 
         if !Path::new("config.json").exists() {
-            let temp_conf = Config::new(env::current_dir().unwrap());
+            let temp_conf = Config::new(current_dir().unwrap());
             temp_conf.save();
 
         }
