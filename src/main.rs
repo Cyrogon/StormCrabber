@@ -129,7 +129,7 @@ fn mods_prep(mods: Vec<PathBuf>, config: &Config) {
 }
 
 fn zip_mods(config: &Config) {
-    zip_create_from_directory(&config.output_path, &current_dir().unwrap()).expect("Archiving Failed");
+    zip_create_from_directory(&current_dir().unwrap().join("zipper.zip"), &config.output_path).expect("Archiving Failed");
 }
 
 fn main() {
